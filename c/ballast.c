@@ -138,18 +138,23 @@ int getdata(const char *sdata, char *data, struct addrinfo *ainfo) {
 }
 
 // resolve host name and return addrinfo with data_port filled in
-struct addrinfo *resolve(char *data_host) {
-    if (data_host == NULL) return NULL;
-    struct addrinfo *ainfo;
-    struct addrinfo hints;
-    bzero(&hints, sizeof(hints));
-    if (strspn(data_host, "0123456789.") == strlen(data_host))
-        hints.ai_flags = AI_NUMERICHOST;
-    // get ip address
-    if (getaddrinfo(data_host, getconf("data_port"), &hints, &ainfo))
-        return NULL;
-    return ainfo;
+struct addrinfo *resolve_host(char *hostname) {
+  if (hostname == NULL) {
+    return NULL;
+  }
+  struct addrinfo hints, *ainfo;
+  bzero(&hints, sizeof(hints));
+  if (strspn(hostname, "0123456789.") == strlen(hostname)) {
+    hints.ai_flags = AI_NUMERICHOST;
+  }
+
+  // Check for getaddrinfo errors and handle them appropriately
+  if (getaddrinfo(hostname, getconf("data_port"), &hints, &ainfo) != 0) {
+    return NULL;
+  }
+  return ainfo;
 }
+
 
 // alarm handler that jumps back to calling environment with invoking signal
 void timeout(int sig) {
